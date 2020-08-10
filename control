@@ -1,0 +1,9 @@
+Package: com.btamm.spotifynumsongsinplaylist
+Name: SpotifyNumSongsinPlaylist
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: Shows the number of songs within a Spotify playlist.
+Maintainer: Brian Tamsing
+Author: Brian Tamsing
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000)
