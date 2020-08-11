@@ -1,26 +1,15 @@
-/*
- * DECLARATIONS
-*/
-@protocol SPTFreeTierPlaylistItemsViewModel <NSObject>
-    @property(nonatomic, readonly) unsigned long long numberOfItems;
-    @property(nonatomic, readonly) unsigned long long numberOfLoadedItems;
-@end
-
-@interface SPTFreeTierPlaylistViewModelImplementation : NSObject
-    @property(nonatomic) __weak id <SPTFreeTierPlaylistItemsViewModel> itemsViewModel;
-    @property(nonatomic, copy, readwrite) NSString* metadataText; 
-@end
+// --- IMPORTS---
+#import "Tweak.h"
 
 // ---------------------------------------------------------------------------------------------------------------------------------------
-
 
 // BASIC VARIABLES
 unsigned long long playlistTrackCount = 0;
 NSString* playlistDuration = @"";
-// UIColor* labelTextColor = [UIColor colorWithRed:0.114 green:0.725 blue:0.329 alpha:1.0];
+UIColor* playlistColor = nil;
 
 /*
- * HOOK ONE (1)
+ * Used for hooking access to a playlist's metadata fields.
 */
 %hook VISREFArtworkContentView
 
@@ -30,16 +19,13 @@ NSString* playlistDuration = @"";
 
     // --- CODE INJECTION POINT---
 
-    // 1. hook the metadata accessibility label ivar
+    // 1. hook into the metadata label ivar
     id playlistMetadataLabel = MSHookIvar<id>(self, "_metadataLabel");
+    // SPTEncoreLabel* playlistTitleLabel = MSHookIvar<SPTEncoreLabel*>(self, "_titleLabel");
 
     // 2. and then set its text
-    [playlistMetadataLabel setText:[NSString stringWithFormat: @"%@ | %lld songs", playlistDuration, playlistTrackCount]];
-
-    /*  
-    // 3. TESTING. setting label text color.
-    playlistMetadataLabel.textColor = labelTextColor;
-    */
+    [playlistMetadataLabel setText:[NSString stringWithFormat: @"%@ / %lld songs", playlistDuration, playlistTrackCount]];
+    // playlistTitleLabel.textColor = playlistColor;
 }
 
 %end
@@ -47,7 +33,9 @@ NSString* playlistDuration = @"";
 // ---------------------------------------------------------------------------------------------------------------------------------------
 
 /*
- * HOOK TWO (2)
+ * Used for obtaining metadata regarding the playlist, including (so far):
+    1. number of songs in the playlist, and
+    2. the duration of the entire playlist.
 */
 %hook SPTFreeTierPlaylistViewModelImplementation
 
@@ -63,3 +51,23 @@ NSString* playlistDuration = @"";
 }
 
 %end
+
+// ---------------------------------------------------------------------------------------------------------------------------------------
+
+/*
+ * Used to extract the "toColor" property of Spotify's playlist gradient view.
+ */
+%hook VISREFGradientView
+
+- (void)updateGradient {
+    // make a call to the original implementation code
+    %orig;
+
+    // --- CODE INJECTION POINT---
+
+    // 1. update the basic variable playlistColor
+    playlistColor = self.toColor;
+ }
+
+%end
+
